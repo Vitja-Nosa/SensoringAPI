@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace SensoringAPI.Attributes;
 
-public class ApiPasswordAuthorizeAttribute : Attribute, IAsyncAuthorizationFilter
+public class ApiPasswordAuthorizeAttribute : Attribute//, IAsyncAuthorizationFilter
 {
     private readonly bool _writeRequired;
 

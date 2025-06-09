@@ -3,17 +3,20 @@ using Microsoft.EntityFrameworkCore;
 using SensoringAPI.Attributes;
 using SensoringAPI.Data;
 using SensoringAPI.Models;
+using SensoringAPI.Repositories;
 
 namespace SensoringAPI.Controllers;
 
 [ApiController]
-[Route("wastedetection")]
+[Route("api/wastedetection")]
 public class WasteDetectionController : ControllerBase
 {
+    private readonly WasteDetectionRepository wasteDetectionRepository;
     private readonly WasteDetectionDBContext _context;
-    public WasteDetectionController(WasteDetectionDBContext context)
+    public WasteDetectionController(WasteDetectionDBContext context, WasteDetectionRepository wasteDetectionRepository)
     {
         _context = context;
+        this.wasteDetectionRepository = wasteDetectionRepository;
     }
 
     // POST /api/wastedetection
@@ -24,14 +27,29 @@ public class WasteDetectionController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        // Verrijking (mock voorbeeld)
-        wasteDetection.Temperature = GetTemperature(wasteDetection.Location);
-        wasteDetection.WeatherCondition = GetWeatherCondition(wasteDetection.Location);
+        wasteDetection = wasteDetectionRepository.EnrichWithWeather(wasteDetection);
 
         _context.WasteDetections.Add(wasteDetection);
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetWasteDetections), new { id = wasteDetection.Id }, wasteDetection);
+    }
+
+    // POST api/wastedetection/bulk
+    [ApiPasswordAuthorize(writeRequired: true)]
+    [HttpPost("bulk")]
+    public async Task<IActionResult> AddWasteDetections([FromBody] List<WasteDetection> wasteDetections)
+    {
+        if (wasteDetections == null || wasteDetections.Count == 0)
+            return BadRequest("No waste detections provided.");
+
+        // Validate and enrich each item
+        wasteDetections = wasteDetectionRepository.EnrichWithWeather(wasteDetections); 
+
+        _context.WasteDetections.AddRange(wasteDetections);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetWasteDetections), null, wasteDetections);
     }
 
     // GET /api/wastedetection
@@ -54,33 +72,32 @@ public class WasteDetectionController : ControllerBase
         const int maxPageSize = 200;
         pageSize = Math.Min(pageSize, maxPageSize);
 
+        // Validate query parameters
+        var errors = wasteDetectionRepository.ValidateQueryParameters(
+            pageNumber,
+            pageSize,
+            confidenceMin,
+            confidenceMax,
+            fromDate,
+            toDate,
+            type,
+            weatherCondition);
+        if(errors != null)
+            return BadRequest(new { errors });
+
         // Creating the query with filtering and pagination
         var query = _context.WasteDetections.AsNoTracking().AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(cameraId))
-            query = query.Where(w => w.CameraId == cameraId);
-
-        if (fromWasteDetectionId.HasValue)
-            query = query.Where(w => w.Id >= fromWasteDetectionId.Value);
-
-        if (!string.IsNullOrWhiteSpace(type))
-            query = query.Where(w => w.Type == type);
-
-        if (!string.IsNullOrWhiteSpace(weatherCondition))
-            query = query.Where(w => w.WeatherCondition == weatherCondition);
-
-        if (fromDate.HasValue)
-            query = query.Where(w => w.DateTime >= fromDate.Value);
-
-        if (toDate.HasValue)
-            query = query.Where(w => w.DateTime <= toDate.Value);
-
-        if (confidenceMin.HasValue)
-            query = query.Where(w => w.Confidence >= confidenceMin.Value);
-
-        if (confidenceMax.HasValue)
-            query = query.Where(w => w.Confidence <= confidenceMax.Value);
-
+        query = wasteDetectionRepository.ApplyFilters(
+            query,
+            cameraId,
+            fromWasteDetectionId,
+            type,
+            weatherCondition,
+            fromDate,
+            toDate,
+            confidenceMin,
+            confidenceMax
+        );
 
         var totalCount = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
