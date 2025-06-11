@@ -1,6 +1,6 @@
-﻿namespace SensoringAPI.Models
+﻿namespace SensoringAPI.ModelsDto
 {
-    public class OpenMeteoResponse
+    public class OpenMeteoResponseDto
     {
         public Hourly hourly { get; set; }
 

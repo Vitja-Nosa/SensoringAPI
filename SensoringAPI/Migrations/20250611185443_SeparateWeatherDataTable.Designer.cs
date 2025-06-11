@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SensoringAPI.Data;
 
@@ -10,10 +11,12 @@ using SensoringAPI.Data;
 
 namespace SensoringAPI.Migrations
 {
-    [DbContext(typeof(WasteDetectionDBContext))]
-    partial class WasteDetectionDBContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(ApplicationDbContext))]
+    [Migration("20250611185443_SeparateWeatherDataTable")]
+    partial class SeparateWeatherDataTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,24 +43,50 @@ namespace SensoringAPI.Migrations
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<float?>("Temperature")
-                        .HasColumnType("real");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("WeatherCondition")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("WeatherId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("WeatherId");
 
                     b.ToTable("WasteDetections");
                 });
 
+            modelBuilder.Entity("SensoringAPI.Models.WeatherData", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("Temperature")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("WeatherCondition")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WeatherData");
+                });
+
             modelBuilder.Entity("SensoringAPI.Models.WasteDetection", b =>
                 {
-                    b.OwnsOne("SensoringAPI.Models.LocationDto", "Location", b1 =>
+                    b.HasOne("SensoringAPI.Models.WeatherData", "WeatherData")
+                        .WithMany()
+                        .HasForeignKey("WeatherId");
+
+                    b.OwnsOne("SensoringAPI.ModelsDto.LocationDto", "Location", b1 =>
                         {
                             b1.Property<int>("WasteDetectionId")
                                 .HasColumnType("int");
@@ -74,6 +103,33 @@ namespace SensoringAPI.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("WasteDetectionId");
+                        });
+
+                    b.Navigation("Location")
+                        .IsRequired();
+
+                    b.Navigation("WeatherData");
+                });
+
+            modelBuilder.Entity("SensoringAPI.Models.WeatherData", b =>
+                {
+                    b.OwnsOne("SensoringAPI.ModelsDto.LocationDto", "Location", b1 =>
+                        {
+                            b1.Property<int>("WeatherDataId")
+                                .HasColumnType("int");
+
+                            b1.Property<double>("Latitude")
+                                .HasColumnType("float");
+
+                            b1.Property<double>("Longitude")
+                                .HasColumnType("float");
+
+                            b1.HasKey("WeatherDataId");
+
+                            b1.ToTable("WeatherData");
+
+                            b1.WithOwner()
+                                .HasForeignKey("WeatherDataId");
                         });
 
                     b.Navigation("Location")

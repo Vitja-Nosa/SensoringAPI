@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using SensoringAPI.ModelsDto;
 
 namespace SensoringAPI.Models;
 
@@ -18,15 +19,12 @@ public class WasteDetection
     public required LocationDto Location { get; set; }
 
     [Required(ErrorMessage = "Type is verplicht.")]
-    [AllowedValues("Glas", "Papier", "Plastic Fles", "Plastic Overig", "Rookwaar", "Blikje", "Gft",
+    [AllowedValues("Glas", "Papier", "Plastic Fles", "Plastic Overig", "Rookwaar", "Blikje", "Gft", 
         ErrorMessage = "Ongeldig type afval. Toegestane waarden: Glas, Papier, Plastic Fles, Plastic Overig, Rookwaar, Blikje, Gft.")]
     public required string Type { get; set; }
 
-    public float? Temperature { get; set; }
-
-    [AllowedValues("Zonnig", "Regenachtig", "Bewolkt", "Sneeuw", "Onweer", "Mistig", "Winderig",
-        ErrorMessage = "Ongeldige weersomstandigheid. Kies uit: Zonnig, Regenachtig, Bewolkt, Sneeuw, Onweer, Mistig, Winderig.")]
-    public string? WeatherCondition { get; set; }
+    public int? WeatherId { get; set; }
+    public WeatherData? WeatherData { get; set; }
 
     [Required(ErrorMessage = "Confidence is verplicht.")]
     [Range(0.0, 1.0, ErrorMessage = "Confidence moet tussen 0.0 en 1.0 liggen.")]

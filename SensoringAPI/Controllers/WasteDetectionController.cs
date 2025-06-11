@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using SensoringAPI.Attributes;
 using SensoringAPI.Data;
 using SensoringAPI.Models;
+using SensoringAPI.ModelsDto;
 using SensoringAPI.Repositories;
+using SensoringAPI.Services;
 
 namespace SensoringAPI.Controllers;
 
@@ -12,8 +14,8 @@ namespace SensoringAPI.Controllers;
 public class WasteDetectionController : ControllerBase
 {
     private readonly WasteDetectionRepository wasteDetectionRepository;
-    private readonly WasteDetectionDBContext _context;
-    public WasteDetectionController(WasteDetectionDBContext context, WasteDetectionRepository wasteDetectionRepository)
+    private readonly ApplicationDbContext _context;
+    public WasteDetectionController(ApplicationDbContext context, WasteDetectionRepository wasteDetectionRepository)
     {
         _context = context;
         this.wasteDetectionRepository = wasteDetectionRepository;
@@ -32,7 +34,8 @@ public class WasteDetectionController : ControllerBase
         _context.WasteDetections.Add(wasteDetection);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetWasteDetections), new { id = wasteDetection.Id }, wasteDetection);
+        var dto = wasteDetection.ToResponseDto();
+        return CreatedAtAction(nameof(GetWasteDetections), new { id = wasteDetection.Id }, dto);
     }
 
     // POST api/wastedetection/bulk
@@ -49,7 +52,8 @@ public class WasteDetectionController : ControllerBase
         _context.WasteDetections.AddRange(wasteDetections);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetWasteDetections), null, wasteDetections);
+        var dtos = wasteDetections.Select(w => w.ToResponseDto()).ToList();
+        return CreatedAtAction(nameof(GetWasteDetections), null, dtos);
     }
 
     // GET /api/wastedetection
@@ -107,13 +111,15 @@ public class WasteDetectionController : ControllerBase
             .Take(pageSize)
             .ToListAsync();
 
+        var responseData = results.Select(w => w.ToResponseDto()).ToList();
+
         var response = new
         {
             pageNumber,
             pageSize,
             totalPages,
             totalCount,
-            data = results
+            data = responseData
         };
 
         return Ok(response);

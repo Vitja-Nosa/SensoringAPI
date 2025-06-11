@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
-namespace SensoringAPI.Models;
+namespace SensoringAPI.ModelsDto;
 
 [Owned]
 public class LocationDto

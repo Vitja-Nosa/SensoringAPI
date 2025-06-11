@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using SensoringAPI.Models;
 using System.Collections.Generic;
+using SensoringAPI.ModelsDto;
 
 public class OpenMeteoWeatherService
 {
@@ -28,7 +29,7 @@ public class OpenMeteoWeatherService
         };
 
         var json = await response.Content.ReadAsStringAsync();
-        var weather = JsonSerializer.Deserialize<OpenMeteoResponse>(json, options);
+        var weather = JsonSerializer.Deserialize<OpenMeteoResponseDto>(json, options);
         if (weather?.hourly?.time == null || weather.hourly.time.Count == 0) return null;
 
         int index = FindClosestHourIndex(weather.hourly.time, dateTime);
@@ -37,7 +38,12 @@ public class OpenMeteoWeatherService
         {
             Temperature = weather.hourly.temperature_2m[index],
             WeatherCondition = TranslateWeatherCode(weather.hourly.weathercode[index]),
-            Time = weather.hourly.time[index]
+            Time = weather.hourly.time[index],
+            Location = new LocationDto
+            {
+                Latitude = latitude,
+                Longitude = longitude
+            }
         };
 
         return weatherData;

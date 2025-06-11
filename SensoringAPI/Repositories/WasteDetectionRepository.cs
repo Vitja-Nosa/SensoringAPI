@@ -3,16 +3,19 @@ using Microsoft.EntityFrameworkCore;
 using SensoringAPI.Attributes;
 using SensoringAPI.Data;
 using SensoringAPI.Models;
+using SensoringAPI.Services;
 
 namespace SensoringAPI.Repositories;
 
 public class WasteDetectionRepository
 {
     private readonly OpenMeteoWeatherService _weatherService;
+    private readonly ApplicationDbContext _dbContext;
 
-    public WasteDetectionRepository(OpenMeteoWeatherService weatherService)
+    public WasteDetectionRepository(OpenMeteoWeatherService weatherService, ApplicationDbContext dbContext)
     {
         _weatherService = weatherService;
+        _dbContext = dbContext;
     }
 
     private readonly HashSet<string> AllowedTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -58,15 +61,15 @@ public class WasteDetectionRepository
     }
 
     public IQueryable<WasteDetection> ApplyFilters(
-    IQueryable<WasteDetection> query,
-    string? cameraId,
-    int? fromWasteDetectionId,
-    string? type,
-    string? weatherCondition,
-    DateTime? fromDate,
-    DateTime? toDate,
-    float? confidenceMin,
-    float? confidenceMax)
+     IQueryable<WasteDetection> query,
+     string? cameraId,
+     int? fromWasteDetectionId,
+     string? type,
+     string? weatherCondition,
+     DateTime? fromDate,
+     DateTime? toDate,
+     float? confidenceMin,
+     float? confidenceMax)
     {
         if (!string.IsNullOrWhiteSpace(cameraId))
             query = query.Where(w => w.CameraId == cameraId);
@@ -78,7 +81,7 @@ public class WasteDetectionRepository
             query = query.Where(w => w.Type == type);
 
         if (!string.IsNullOrWhiteSpace(weatherCondition))
-            query = query.Where(w => w.WeatherCondition == weatherCondition);
+            query = query.Where(w => w.WeatherData != null && w.WeatherData.WeatherCondition == weatherCondition);
 
         if (fromDate.HasValue)
             query = query.Where(w => w.DateTime >= fromDate.Value);
@@ -97,44 +100,73 @@ public class WasteDetectionRepository
 
     public WasteDetection EnrichWithWeather(WasteDetection wasteDetection)
     {
-        WeatherData? weatherData = _weatherService.GetWeatherAsync(
+        var weatherData = GetOrCreateWeatherData(
             wasteDetection.Location.Latitude,
             wasteDetection.Location.Longitude,
-            wasteDetection.DateTime).Result;
+            wasteDetection.DateTime);
 
         if (weatherData != null)
         {
-            wasteDetection.Temperature = (float)weatherData.Temperature;
-            wasteDetection.WeatherCondition = weatherData.WeatherCondition;
+            wasteDetection.WeatherId = weatherData.Id;
+            wasteDetection.WeatherData = weatherData;
         }
 
         return wasteDetection;
     }
 
-    public List<WasteDetection> EnrichWithWeather(List<WasteDetection> wasteDetection)
+    public List<WasteDetection> EnrichWithWeather(List<WasteDetection> wasteDetections)
     {
-        List<List<WasteDetection>> groupedDetections = GroupWasteDetections(wasteDetection);
+        var groupedDetections = GroupWasteDetections(wasteDetections);
 
-        for (int i = 0; i < groupedDetections.Count; i++)
+        foreach (var group in groupedDetections)
         {
-            var group = groupedDetections[i];
+            var first = group[0];
+            var weatherData = GetOrCreateWeatherData(
+                first.Location.Latitude,
+                first.Location.Longitude,
+                first.DateTime);
 
-            WeatherData? weatherData = _weatherService.GetWeatherAsync(
-                group[0].Location.Latitude,
-                group[0].Location.Longitude,
-                group[0].DateTime).Result;
-
-            for (int j = 0; j < group.Count; j++)
+            foreach (var detection in group)
             {
                 if (weatherData != null)
                 {
-                    group[j].Temperature = (float)weatherData.Temperature;
-                    group[j].WeatherCondition = weatherData.WeatherCondition;
+                    detection.WeatherId = weatherData.Id;
+                    detection.WeatherData = weatherData;
                 }
             }
         }
 
         return groupedDetections.SelectMany(group => group).ToList();
+    }
+
+    private WeatherData? GetOrCreateWeatherData(double latitude, double longitude, DateTime dateTime)
+    {
+        double roundedLat = Math.Round(latitude, 2);
+        double roundedLon = Math.Round(longitude, 2);
+        DateTime roundedHour = HelperService.RoundToNearestHour(dateTime);
+
+        // Try to find existing WeatherData
+        var weatherData = _dbContext.WeatherData
+            .FirstOrDefault(w =>
+                Math.Round(w.Location.Latitude, 2) == roundedLat &&
+                Math.Round(w.Location.Longitude, 2) == roundedLon &&
+                w.Time == roundedHour);
+
+        if (weatherData == null)
+        {
+            // Fetch from service and add to DB
+            weatherData = _weatherService.GetWeatherAsync(roundedLat, roundedLon, roundedHour).Result;
+            if (weatherData != null)
+            {
+                weatherData.Time = roundedHour;
+                weatherData.Location.Latitude = roundedLat;
+                weatherData.Location.Longitude = roundedLon;
+                _dbContext.WeatherData.Add(weatherData);
+                _dbContext.SaveChanges();
+            }
+        }
+
+        return weatherData;
     }
 
     private List<List<WasteDetection>> GroupWasteDetections(IEnumerable<WasteDetection> detections)

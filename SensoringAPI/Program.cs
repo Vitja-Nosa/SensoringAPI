@@ -16,7 +16,7 @@ var sqlConnectionStringFound = !string.IsNullOrWhiteSpace(sqlConnectionString);
 builder.Services.AddHttpClient<OpenMeteoWeatherService>();
 
 // Add services to the container.
-builder.Services.AddDbContext<WasteDetectionDBContext>(options =>
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetValue<string>("SqlConnectionString")));
 
 builder.Services.AddControllers();
