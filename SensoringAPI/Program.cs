@@ -7,6 +7,7 @@ using SensoringAPI.Data;
 using SensoringAPI.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://0.0.0.0:80");
 
 builder.Configuration.AddUserSecrets<Program>();
 
