@@ -19,7 +19,7 @@ public class WasteDetection
     public required LocationDto Location { get; set; }
 
     [Required(ErrorMessage = "Type is verplicht.")]
-    [AllowedValues("Glas", "Papier", "Plastic Fles", "Plastic Overig", "Rookwaar", "Blikje", "Gft", 
+    [AllowedValues("Glas", "Papier", "Plastic", "Rookwaar", "Blikje", "Gft", 
         ErrorMessage = "Ongeldig type afval. Toegestane waarden: Glas, Papier, Plastic Fles, Plastic Overig, Rookwaar, Blikje, Gft.")]
     public required string Type { get; set; }
 

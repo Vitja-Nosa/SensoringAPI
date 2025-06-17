@@ -20,7 +20,7 @@ public class WasteDetectionRepository
 
     private readonly HashSet<string> AllowedTypes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Glas", "Papier", "Plastic Fles", "Plastic Overig", "Rookwaar", "Blikje", "Gft"
+        "Glas", "Papier", "Plastic", "Rookwaar", "Blikje", "Gft"
     };
 
     private readonly HashSet<string> AllowedWeatherConditions = new(StringComparer.OrdinalIgnoreCase)
