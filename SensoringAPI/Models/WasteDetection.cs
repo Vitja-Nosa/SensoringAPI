@@ -12,6 +12,7 @@ public class WasteDetection
     public string CameraId { get; set; }
 
     [Required(ErrorMessage = "Datum en tijd zijn verplicht.")]
+    [Range(typeof(DateTime), "2020-01-01", "2099-12-31", ErrorMessage = "Datum moet vanaf 2020 zijn.")]
     public DateTime DateTime { get; set; }
 
     [Required(ErrorMessage = "Locatie is verplicht.")]
@@ -27,6 +28,6 @@ public class WasteDetection
     public WeatherData? WeatherData { get; set; }
 
     [Required(ErrorMessage = "Confidence is verplicht.")]
-    [Range(0.0, 1.0, ErrorMessage = "Confidence moet tussen 0.0 en 1.0 liggen.")]
+    [Range(0.5, 1.0, ErrorMessage = "Confidence moet tussen 0.0 en 1.0 liggen.")]
     public float Confidence { get; set; }
 }

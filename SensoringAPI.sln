@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35806.99 d17.13
+VisualStudioVersion = 17.13.35806.99
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SensoringAPI", "SensoringAPI\SensoringAPI.csproj", "{7FC3898C-FD65-4378-A05A-DC32B72DD786}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SensoringAPI.tests", "SensoringAPI.tests\SensoringAPI.tests.csproj", "{012DE5C1-766B-4ED0-A351-E8B665A3D005}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{7FC3898C-FD65-4378-A05A-DC32B72DD786}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FC3898C-FD65-4378-A05A-DC32B72DD786}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FC3898C-FD65-4378-A05A-DC32B72DD786}.Release|Any CPU.Build.0 = Release|Any CPU
+		{012DE5C1-766B-4ED0-A351-E8B665A3D005}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{012DE5C1-766B-4ED0-A351-E8B665A3D005}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{012DE5C1-766B-4ED0-A351-E8B665A3D005}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{012DE5C1-766B-4ED0-A351-E8B665A3D005}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
