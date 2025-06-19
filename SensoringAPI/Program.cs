@@ -7,12 +7,22 @@ using SensoringAPI.Data;
 using SensoringAPI.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://0.0.0.0:80");
+if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true") {
+    Console.WriteLine($"RUNNING IN CONTAINER");
+    builder.WebHost.UseUrls("http://0.0.0.0:80");
+}
 
 builder.Configuration.AddUserSecrets<Program>();
+builder.Configuration.AddEnvironmentVariables();
 
 var sqlConnectionString = builder.Configuration.GetValue<string>("SqlConnectionString");
 var sqlConnectionStringFound = !string.IsNullOrWhiteSpace(sqlConnectionString);
+
+Console.WriteLine($"[DEBUG] SqlConnectionString found: {sqlConnectionStringFound}");
+if (!sqlConnectionStringFound)
+    Console.WriteLine("[DEBUG] SqlConnectionString is null or empty.");
+else
+    Console.WriteLine($"[DEBUG] SqlConnectionString: {sqlConnectionString}");
 
 builder.Services.AddHttpClient<OpenMeteoWeatherService>();
 
