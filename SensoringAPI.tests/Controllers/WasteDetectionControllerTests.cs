@@ -9,7 +9,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
 using Microsoft.EntityFrameworkCore;
-using SensoringAPI.Tests; // Make sure this matches the namespace in TestHelpers.cs
+using SensoringAPI.Tests;
+using SensoringAPI.Services.Interfaces;
+using SensoringAPI.Services; // Make sure this matches the namespace in TestHelpers.cs
 
 namespace SensoringAPI.Tests.Controllers
 {
@@ -26,7 +28,7 @@ namespace SensoringAPI.Tests.Controllers
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            _dbContext = new ApplicationDbContext(options);
+            _dbContext = new ApplicationDbContext(options, new TestModeService());
             var weatherService = new OpenMeteoWeatherService(new HttpClient());
 
             var repo = new WasteDetectionRepository(weatherService, _dbContext);
