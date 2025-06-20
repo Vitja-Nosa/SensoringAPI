@@ -32,7 +32,7 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}/SensoringApi
+          appSourcePath: ${{ github.workspace }}/SensoringAPI
           _dockerfilePathKey_: _dockerfilePath_
           registryUrl: acravans12345.azurecr.io
           registryUsername: ${{ secrets.SENSORINGAPI_REGISTRY_USERNAME }}
