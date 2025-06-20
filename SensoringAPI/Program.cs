@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using SensoringAPI.Controllers;
 using SensoringAPI.Data;
 using SensoringAPI.Repositories;
+using SensoringAPI.Services.Interfaces;
+using SensoringAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true") {
@@ -25,6 +27,9 @@ else
     Console.WriteLine($"[DEBUG] SqlConnectionString: {sqlConnectionString}");
 
 builder.Services.AddHttpClient<OpenMeteoWeatherService>();
+
+builder.Services.AddScoped<ITestModeService, TestModeService>();
+
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
