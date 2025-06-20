@@ -41,6 +41,7 @@ builder.Services.AddScoped<WasteDetectionRepository>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
 builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter("PerIpPolicy", config =>
@@ -52,6 +53,7 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+
 // Automatically Validiate ModelState
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -60,6 +62,17 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
 
 var app = builder.Build();
+
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext> ();
+    db.Database.Migrate();
+}
+catch (Exception ex)
+{
+    Console.WriteLine("Migration error: " + ex.Message);
+}
 
 app.UseRateLimiter();
 
