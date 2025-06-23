@@ -28,6 +28,6 @@ public class WasteDetection
     public WeatherData? WeatherData { get; set; }
 
     [Required(ErrorMessage = "Confidence is verplicht.")]
-    [Range(0.5, 1.0, ErrorMessage = "Confidence moet tussen 0.0 en 1.0 liggen.")]
+    [Range(0.4, 1.0, ErrorMessage = "Confidence moet tussen 0.4 en 1.0 liggen.")]
     public float Confidence { get; set; }
 }
