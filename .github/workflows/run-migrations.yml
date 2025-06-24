@@ -2,8 +2,8 @@ name: Run Migrations
 
 on:
   push:
-    branches: [main] # or whatever branch you want
-  workflow_dispatch: # allows manual triggering
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   run-migrations:
@@ -16,12 +16,18 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0' # or your target .NET version
+        dotnet-version: '8.0.x' # adjust if needed
+
+    - name: Install dotnet-ef
+      run: dotnet tool install --global dotnet-ef
+
+    - name: Add dotnet tools to PATH
+      run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore ./SensoringAPI/SensoringAPI.csproj
 
     - name: Run EF Core Migrations
-      run: dotnet ef database update --connection "${{ secrets.DB_CONNECTION_STRING }}"
+      run: dotnet ef database update --connection "${{ secrets.DB_CONNECTION_STRING }}" --project ./SensoringAPI --startup-project ./SensoringAPI
       env:
         DOTNET_ENVIRONMENT: Production
