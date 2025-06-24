@@ -2,8 +2,8 @@ name: Run Migrations
 
 on:
   push:
-    branches: [main] # or whatever branch you want
-  workflow_dispatch: # allows manual triggering
+    branches: [master]
+  workflow_dispatch:
 
 jobs:
   run-migrations:
@@ -16,7 +16,13 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0' # or your target .NET version
+        dotnet-version: '8.0.x' # adjust to your version
+
+    - name: Install dotnet-ef tool
+      run: dotnet tool install --global dotnet-ef
+
+    - name: Add dotnet tools to PATH
+      run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
     - name: Restore dependencies
       run: dotnet restore
