@@ -1,0 +1,27 @@
+name: Run Migrations
+
+on:
+  push:
+    branches: [main] # or whatever branch you want
+  workflow_dispatch: # allows manual triggering
+
+jobs:
+  run-migrations:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0' # or your target .NET version
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Run EF Core Migrations
+      run: dotnet ef database update --connection "${{ secrets.DB_CONNECTION_STRING }}"
+      env:
+        DOTNET_ENVIRONMENT: Production
